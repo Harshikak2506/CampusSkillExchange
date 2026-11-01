@@ -1,0 +1,40 @@
+name: Campus Skill Exchange — CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    name: Install, Test & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies (clean install)
+        run: npm ci
+
+      - name: Run frontend verification tests
+        run: npm test
+
+      - name: Build production bundle
+        run: npm run build
+        env:
+          # Use a placeholder for CI builds — the real URL is injected
+          # per-environment via Vercel environment variables in production.
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'https://placeholder-for-ci-build.example.com' }}
+
+      - name: Verify build artifacts exist
+        run: |
+          test -f dist/index.html && echo "✓ dist/index.html present"
+          ls -lah dist/assets/
